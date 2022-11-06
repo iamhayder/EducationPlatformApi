@@ -3,6 +3,7 @@ using System;
 using EducationPlatformApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EducationPlatformApi.Migrations
 {
     [DbContext(typeof(EducationPlatformApiContext))]
-    partial class EducationPlatformApiContextModelSnapshot : ModelSnapshot
+    [Migration("20221106214910_pleasegod2")]
+    partial class pleasegod2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.10");

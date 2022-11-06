@@ -1,5 +1,6 @@
 ﻿using EducationPlatformApi.Data;
 using EducationPlatformApi.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Mime;
@@ -18,7 +19,7 @@ namespace EducationPlatformApi.Controllers
         {
             _context = context;
         }
-        
+
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<Category>>> Get()
@@ -37,10 +38,12 @@ namespace EducationPlatformApi.Controllers
             return Ok(category);
         }
 
+        [Authorize(Roles = "Trainer")]
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<List<Category>>> Add(AddCategoryRequest addCategoryRequest)
+        public async Task<ActionResult<Category>> Add(AddCategoryRequest addCategoryRequest)
         {
             var category = new Category()
             {
@@ -52,6 +55,7 @@ namespace EducationPlatformApi.Controllers
             return Ok(category);
         }
 
+        [Authorize(Roles = "Trainer")]
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -69,8 +73,10 @@ namespace EducationPlatformApi.Controllers
             return Ok(dbCategory);
         }
 
+        [Authorize(Roles = "Trainer")]
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<List<Category>>> Delete(int id)
         {

@@ -3,6 +3,7 @@ using System;
 using EducationPlatformApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,12 +11,28 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EducationPlatformApi.Migrations
 {
     [DbContext(typeof(EducationPlatformApiContext))]
-    partial class EducationPlatformApiContextModelSnapshot : ModelSnapshot
+    [Migration("20221106205145_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.10");
+
+            modelBuilder.Entity("ApplicationUserCourse", b =>
+                {
+                    b.Property<int>("CoursesId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UsersId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("CoursesId", "UsersId");
+
+                    b.HasIndex("UsersId");
+
+                    b.ToTable("ApplicationUserCourse");
+                });
 
             modelBuilder.Entity("EducationPlatformApi.Models.ApplicationUser", b =>
                 {
@@ -130,21 +147,6 @@ namespace EducationPlatformApi.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("Courses");
-                });
-
-            modelBuilder.Entity("EducationPlatformApi.Models.UserCourse", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("CourseId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("UserId", "CourseId");
-
-                    b.HasIndex("CourseId");
-
-                    b.ToTable("UserCourses");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -275,6 +277,21 @@ namespace EducationPlatformApi.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("ApplicationUserCourse", b =>
+                {
+                    b.HasOne("EducationPlatformApi.Models.Course", null)
+                        .WithMany()
+                        .HasForeignKey("CoursesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EducationPlatformApi.Models.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UsersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("EducationPlatformApi.Models.Course", b =>
                 {
                     b.HasOne("EducationPlatformApi.Models.Category", "Category")
@@ -284,25 +301,6 @@ namespace EducationPlatformApi.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
-                });
-
-            modelBuilder.Entity("EducationPlatformApi.Models.UserCourse", b =>
-                {
-                    b.HasOne("EducationPlatformApi.Models.Course", "Course")
-                        .WithMany("CourseUsers")
-                        .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("EducationPlatformApi.Models.ApplicationUser", "User")
-                        .WithMany("UserCourses")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Course");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -356,19 +354,9 @@ namespace EducationPlatformApi.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("EducationPlatformApi.Models.ApplicationUser", b =>
-                {
-                    b.Navigation("UserCourses");
-                });
-
             modelBuilder.Entity("EducationPlatformApi.Models.Category", b =>
                 {
                     b.Navigation("Courses");
-                });
-
-            modelBuilder.Entity("EducationPlatformApi.Models.Course", b =>
-                {
-                    b.Navigation("CourseUsers");
                 });
 #pragma warning restore 612, 618
         }

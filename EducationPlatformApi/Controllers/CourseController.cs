@@ -1,9 +1,11 @@
 ﻿using EducationPlatformApi.Data;
 using EducationPlatformApi.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Mime;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+
 
 namespace EducationPlatformApi.Controllers
 {
@@ -14,12 +16,15 @@ namespace EducationPlatformApi.Controllers
     public class CourseController : ControllerBase
     {
         private readonly EducationPlatformApiContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public CourseController(EducationPlatformApiContext context)
+
+        public CourseController(EducationPlatformApiContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
-        
+
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<Course>>> Get([FromQuery] int? categoryId)
@@ -44,13 +49,18 @@ namespace EducationPlatformApi.Controllers
             return Ok(course);
         }
 
+        [Authorize(Roles = "Trainer")]
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public async Task<ActionResult<List<Course>>> Add(AddCourseRequest addCourseRequest)
+        public async Task<ActionResult<Course>> Add(AddCourseRequest addCourseRequest)
         {
             var category = await _context.Categories.FindAsync(addCourseRequest.CategoryId);
+            var user = await _userManager.GetUserAsync(User);
+
             if (category == null)
             {
                 ModelState.AddModelError(nameof(addCourseRequest.CategoryId), "no category with this id");
@@ -62,8 +72,11 @@ namespace EducationPlatformApi.Controllers
             }
             var course = new Course()
             {
-                Name = addCourseRequest.Name,
-                CategoryId = addCourseRequest.CategoryId,
+                Title = addCourseRequest.Title,
+                Description = addCourseRequest.Description,
+                Content = addCourseRequest.Content,
+                Category = category!,
+                TrainerUserId = new Guid(user.Id)
             };
             _context.Courses.Add(course);
             await _context.SaveChangesAsync();
@@ -71,12 +84,13 @@ namespace EducationPlatformApi.Controllers
             return Ok(course);
         }
 
+        [Authorize(Roles = "Trainer")]
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public async Task<ActionResult<List<Course>>> Update(int id, UpdateCourseRequest updateCourseRequest)
+        public async Task<ActionResult<Course>> Update(int id, UpdateCourseRequest updateCourseRequest)
         {
             var dbCourse = await _context.Courses.FindAsync(id);
             if (dbCourse == null)
@@ -91,16 +105,20 @@ namespace EducationPlatformApi.Controllers
                 return UnprocessableEntity(ModelState);
             }
 
-            dbCourse.Name = updateCourseRequest.Name;
-            dbCourse.CategoryId = updateCourseRequest.CategoryId;   
+            dbCourse.Title = updateCourseRequest.Title;
+            dbCourse.CategoryId = updateCourseRequest.CategoryId;
+            dbCourse.Description = updateCourseRequest.Description;
+            dbCourse.Content = updateCourseRequest.Content;
 
             await _context.SaveChangesAsync();
 
             return Ok(dbCourse);
         }
 
+        [Authorize(Roles = "Trainer")]
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<List<Course>>> Delete(int id)
         {
@@ -113,5 +131,51 @@ namespace EducationPlatformApi.Controllers
 
             return Ok();
         }
+
+        [Authorize(Roles = "Trainer")]
+        [HttpGet("{id}/enrolledUsers")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<List<UserResponse>>> GetCourseUsers(int id)
+        {
+            var course = await _context.Courses.FindAsync(id);
+            if (course == null)
+                return NotFound("course not found");
+            return Ok(await _context.Entry(course).Collection(c => c.CourseUsers).Query().Select(x => new UserResponse
+            {
+                UserName = x.User.UserName,
+                Email = x.User.Email,
+                PhoneNumber = x.User.PhoneNumber,
+                Role = x.User.Role
+            }).ToListAsync());
+        }
+
+        [Authorize(Roles = "User")]
+        [HttpGet("{id}/enroll")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<string>> CourseEnroll(int id)
+        {
+            var course = await _context.Courses.FindAsync(id);
+            if (course == null)
+                return NotFound("course not found");
+            var user = await _userManager.GetUserAsync(User);
+            
+
+            var alreadyEnrolled = await _context.UserCourses.Where(uc => uc.Course == course && uc.User == user).CountAsync();
+            if (alreadyEnrolled != 0)
+            {
+                return BadRequest("already enrolled");
+            }
+            user.UserCourses.Add(new UserCourse()
+            {
+                User = user,
+                Course = course
+            });
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
     }
 }
