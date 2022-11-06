@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace EducationPlatformApi.Models
+namespace EducationPlatformApi.Requests
 {
     public class AuthenticationRequest
     {

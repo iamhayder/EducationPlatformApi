@@ -6,6 +6,8 @@ using EducationPlatformApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using EducationPlatformApi.Data;
 using Microsoft.EntityFrameworkCore;
+using EducationPlatformApi.Requests;
+using EducationPlatformApi.Responses;
 
 namespace EducationPlatformApi.Controllers
 {

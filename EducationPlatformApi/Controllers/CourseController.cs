@@ -1,5 +1,7 @@
 ﻿using EducationPlatformApi.Data;
 using EducationPlatformApi.Models;
+using EducationPlatformApi.Requests;
+using EducationPlatformApi.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using EducationPlatformApi.Models;
 
-namespace EducationPlatformApi.Models
+namespace EducationPlatformApi.Responses
 {
     public class UserResponse
     {

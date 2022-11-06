@@ -1,4 +1,4 @@
-﻿namespace EducationPlatformApi.Models
+﻿namespace EducationPlatformApi.Responses
 {
     public class AuthenticationResponse
     {

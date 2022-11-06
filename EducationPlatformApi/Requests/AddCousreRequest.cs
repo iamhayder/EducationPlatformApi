@@ -1,14 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace EducationPlatformApi.Models
+namespace EducationPlatformApi.Requests
 {
     public class AddCourseRequest
     {
         [Required]
         [MaxLength(100)]
         public string Title { get; set; } = string.Empty;
-        
+
         [Column(TypeName = "text")]
         public string Description { get; set; } = string.Empty;
 
