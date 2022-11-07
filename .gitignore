@@ -362,4 +362,7 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
+.vscode
 EducationPlatformApi/EducationPlatform.db
+EducationPlatformApi/EducationPlatform.db-shm
+EducationPlatformApi/EducationPlatform.db-wal
