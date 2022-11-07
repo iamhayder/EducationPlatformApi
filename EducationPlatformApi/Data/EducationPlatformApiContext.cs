@@ -15,7 +15,7 @@ namespace EducationPlatformApi.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<UserCourse>()
-                .HasKey(uc => new { uc.UserId, uc.CourseId});
+                .HasKey(uc => new { uc.UserId, uc.CourseId });
             modelBuilder.Entity<UserCourse>()
                 .HasOne(bc => bc.User)
                 .WithMany(b => b.UserCourses)
@@ -30,7 +30,5 @@ namespace EducationPlatformApi.Data
         public DbSet<Category> Categories => Set<Category>();
         public DbSet<Course> Courses => Set<Course>();
         public DbSet<UserCourse> UserCourses => Set<UserCourse>();
-
-
     }
 }

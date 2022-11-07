@@ -2,7 +2,7 @@
 
 namespace EducationPlatformApi.Requests
 {
-    public class UpdateCategoryRequest
+    public class CategoryRequest
     {
         [Required]
         [MaxLength(100)]

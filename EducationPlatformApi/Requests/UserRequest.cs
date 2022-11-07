@@ -16,6 +16,5 @@ namespace EducationPlatformApi.Requests
         public string PhoneNumber { get; set; } = string.Empty;
         [Required]
         public Role Role { get; set; }
-
     }
 }

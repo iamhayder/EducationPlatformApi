@@ -178,7 +178,8 @@ namespace EducationPlatformApi.Migrations
                     Description = table.Column<string>(type: "text", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false),
                     CategoryId = table.Column<int>(type: "INTEGER", nullable: false),
-                    TrainerUserId = table.Column<Guid>(type: "TEXT", nullable: false)
+                    TrainerUserId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    ImagePath = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -192,33 +193,28 @@ namespace EducationPlatformApi.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ApplicationUserCourse",
+                name: "UserCourses",
                 columns: table => new
                 {
-                    CoursesId = table.Column<int>(type: "INTEGER", nullable: false),
-                    UsersId = table.Column<string>(type: "TEXT", nullable: false)
+                    UserId = table.Column<string>(type: "TEXT", nullable: false),
+                    CourseId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ApplicationUserCourse", x => new { x.CoursesId, x.UsersId });
+                    table.PrimaryKey("PK_UserCourses", x => new { x.UserId, x.CourseId });
                     table.ForeignKey(
-                        name: "FK_ApplicationUserCourse_AspNetUsers_UsersId",
-                        column: x => x.UsersId,
+                        name: "FK_UserCourses_AspNetUsers_UserId",
+                        column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ApplicationUserCourse_Courses_CoursesId",
-                        column: x => x.CoursesId,
+                        name: "FK_UserCourses_Courses_CourseId",
+                        column: x => x.CourseId,
                         principalTable: "Courses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ApplicationUserCourse_UsersId",
-                table: "ApplicationUserCourse",
-                column: "UsersId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -261,13 +257,15 @@ namespace EducationPlatformApi.Migrations
                 name: "IX_Courses_CategoryId",
                 table: "Courses",
                 column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserCourses_CourseId",
+                table: "UserCourses",
+                column: "CourseId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "ApplicationUserCourse");
-
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -284,13 +282,16 @@ namespace EducationPlatformApi.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Courses");
+                name: "UserCourses");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Courses");
 
             migrationBuilder.DropTable(
                 name: "Categories");

@@ -18,7 +18,7 @@ namespace EducationPlatformApi.Services
             _configuration = configuration;
         }
 
-        public AuthenticationResponse CreateToken(ApplicationUser user)
+        public BaseAuthenticationResponse CreateToken(ApplicationUser user)
         {
             var expiration = DateTime.UtcNow.AddMinutes(ExpirationMinutes);
 
@@ -30,7 +30,7 @@ namespace EducationPlatformApi.Services
 
             var tokenHandler = new JwtSecurityTokenHandler();
 
-            return new AuthenticationResponse
+            return new BaseAuthenticationResponse
             {
                 Token = tokenHandler.WriteToken(token),
                 Expiration = expiration

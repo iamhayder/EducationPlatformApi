@@ -5,6 +5,7 @@ using System.Net.Mime;
 using EducationPlatformApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using EducationPlatformApi.Data;
+using EducationPlatformApi.Helpers;
 using Microsoft.EntityFrameworkCore;
 using EducationPlatformApi.Requests;
 using EducationPlatformApi.Responses;
@@ -34,30 +35,48 @@ namespace EducationPlatformApi.Controllers
         [HttpPost("register")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<UserResponse>> RegisterUser(UserRequest user)
+        public async Task<ActionResult<UserResponse>> RegisterUser(UserRequest userRequest)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new UserResponse()
+                {
+                    Status = StatusType.Error.Value,
+                    ModelError = ModelState,
+                });
             }
 
-            var result = await _userManager.CreateAsync(
-                new ApplicationUser() { UserName = user.UserName, Email = user.Email, PhoneNumber = user.PhoneNumber, Role =user.Role },
-                user.Password
-            );
+            var user = new ApplicationUser()
+            {
+                UserName = userRequest.UserName,
+                Email = userRequest.Email,
+                PhoneNumber = userRequest.PhoneNumber,
+                Role = userRequest.Role
+            };
+            var result = await _userManager.CreateAsync(user, userRequest.Password);
 
             if (!result.Succeeded)
             {
-                return BadRequest(result.Errors);
+                return BadRequest(new UserResponse()
+                {
+                    Status = StatusType.Error.Value,
+                    Errors = result.Errors,
+                });
             }
 
-            return CreatedAtAction("RegisterUser", new UserResponse
-            { 
-                UserName = user.UserName, 
-                Email = user.Email, 
-                PhoneNumber = user.PhoneNumber,
-                Role = user.Role
-            }, user);
+            return CreatedAtAction("RegisterUser", new UserResponse()
+            {
+                Status = StatusType.Success.Value,
+                Data = new User()
+                {
+                    Id = user.Id,
+                    UserName = userRequest.UserName,
+                    Email = userRequest.Email,
+                    PhoneNumber = userRequest.PhoneNumber,
+                    Role = userRequest.Role
+                }
+            });
+
 
         }
 
@@ -70,15 +89,24 @@ namespace EducationPlatformApi.Controllers
 
             if (user == null)
             {
-                return NotFound();
+                return NotFound(new UserResponse()
+                {
+                    Status = StatusType.Error.Value,
+                    ErrorMessage = "User Not found"
+                });
             }
 
             return new UserResponse
             {
-                UserName = user.UserName,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                Role = user.Role
+                Status = StatusType.Success.Value,
+                Data = new User()
+                {
+                    Id = user.Id,
+                    UserName = user.UserName,
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber,
+                    Role = user.Role
+                }
             };
         }
 
@@ -89,38 +117,51 @@ namespace EducationPlatformApi.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest("Bad credentials");
+                return BadRequest(new AuthenticationResponse()
+                {
+                    Status = StatusType.Error.Value,
+                    ErrorMessage = "bad credentials"
+                });
             }
-
             var user = await _userManager.FindByNameAsync(request.UserName);
-
             if (user == null)
             {
-                return BadRequest("Bad credentials");
+                return BadRequest(new AuthenticationResponse()
+                {
+                    Status = StatusType.Error.Value,
+                    ErrorMessage = "bad credentials"
+                });
             }
-
             var isPasswordValid = await _userManager.CheckPasswordAsync(user, request.Password);
-
             if (!isPasswordValid)
             {
-                return BadRequest("Bad credentials");
+                return BadRequest(new AuthenticationResponse()
+                {
+                    Status = StatusType.Error.Value,
+                    ErrorMessage = "bad credentials"
+                });
             }
-
             var token = _jwtService.CreateToken(user);
-
-            return Ok(token);
+            return Ok(new AuthenticationResponse()
+            {
+                Status = StatusType.Success.Value,
+                Data = token
+            });
         }
-
 
         [Authorize(Roles = "Trainer")]
         [HttpGet("trainerCourses")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<List<Course>>> GetTrainerCourses()
+        public async Task<ActionResult<CourseListResponse>> GetTrainerCourses()
         {
             var user = await _userManager.GetUserAsync(User);
-            var courses = await _context.Courses.Where(c => c.TrainerUserId == new Guid (user.Id)).ToListAsync();
-            return Ok(courses);
+            var courses = await _context.Courses.Where(c => c.TrainerUserId == new Guid(user.Id)).AsNoTracking().ToListAsync();
+            return Ok(new CourseListResponse()
+            {
+                Status = StatusType.Success.Value,
+                Data = courses
+            });
 
         }
 
@@ -128,7 +169,7 @@ namespace EducationPlatformApi.Controllers
         [HttpGet("enrolledCourses")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<List<Course>>> GetUserEnrolledCourses()
+        public async Task<ActionResult<CourseListResponse>> GetUserEnrolledCourses()
         {
             var user = await _userManager.GetUserAsync(User);
             var enrolledCourses = await _context.Entry(user).Collection(c => c.UserCourses).Query().Select(x => new Course
@@ -139,10 +180,12 @@ namespace EducationPlatformApi.Controllers
                 Content = x.Course.Content,
                 CategoryId = x.Course.CategoryId,
                 TrainerUserId = x.Course.TrainerUserId
-            }).ToListAsync();
-
-            return Ok(enrolledCourses);
-
+            }).AsNoTracking().ToListAsync();
+            return Ok(new CourseListResponse()
+            {
+                Status = StatusType.Success.Value,
+                Data = enrolledCourses
+            });
         }
     }
 }

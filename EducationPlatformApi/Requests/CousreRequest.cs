@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
+
 namespace EducationPlatformApi.Requests
 {
-    public class AddCourseRequest
+    public class CourseRequest
     {
         [Required]
         [MaxLength(100)]
@@ -18,5 +19,6 @@ namespace EducationPlatformApi.Requests
         [Required]
         public int CategoryId { get; set; }
 
+        public IFormFile? Image { get; set; }
     }
 }
